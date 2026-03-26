@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(netstat -ano)",
-      "Bash(powershell -Command \"Stop-Process -Id 34320 -Force\")"
+      "Bash(powershell -Command \"Stop-Process -Id 34320 -Force\")",
+      "Bash(node -e \"require\\(''./routes/index''\\); console.log\\(''All modules loaded OK''\\);\")"
     ]
   }
 }
