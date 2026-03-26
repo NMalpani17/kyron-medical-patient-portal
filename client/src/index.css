@@ -1,3 +1,102 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Page & container ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Message bubbles ── */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Typing dots ── */
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%           { transform: translateY(-6px); }
+}
+
+/* ── Voice button glow pulse ── */
+@keyframes voicePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55); }
+  50%      { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
+}
+
+/* ── Confirmation screen ── */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes drawCheck {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes checkCircle {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Slot card hover ── */
+@keyframes slotFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Utility classes ── */
+.anim-fade-slide-up   { animation: fadeSlideUp 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+.anim-slide-in-left   { animation: slideInLeft 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+.anim-slide-in-right  { animation: slideInRight 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+.anim-scale-in        { animation: scaleIn 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+.anim-slot-fade-in    { animation: slotFadeIn 0.3s ease both; }
+
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.voice-btn-pulse {
+  animation: voicePulse 2s ease-in-out infinite;
+}
+
+.slot-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  border-color: rgba(59,130,246,0.6) !important;
+}
+
+.check-path {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: drawCheck 0.6s 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+.check-circle {
+  animation: checkCircle 0.4s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Scrollbar styling */
+.chat-scroll::-webkit-scrollbar { width: 4px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }

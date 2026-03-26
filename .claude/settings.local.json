@@ -4,7 +4,13 @@
       "Bash(npm install:*)",
       "Bash(netstat -ano)",
       "Bash(powershell -Command \"Stop-Process -Id 34320 -Force\")",
-      "Bash(node -e \"require\\(''./routes/index''\\); console.log\\(''All modules loaded OK''\\);\")"
+      "Bash(node -e \"require\\(''./routes/index''\\); console.log\\(''All modules loaded OK''\\);\")",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(grep -v \"^0$\")",
+      "Bash(while read:*)",
+      "Bash(do powershell:*)",
+      "Bash(done)",
+      "Bash(node:*)"
     ]
   }
 }
