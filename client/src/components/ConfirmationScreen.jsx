@@ -33,7 +33,7 @@ function formatDate(dateStr) {
   });
 }
 
-export default function ConfirmationScreen({ appointmentInfo }) {
+export default function ConfirmationScreen({ appointmentInfo, onReset }) {
   const doctorName = DOCTOR_NAMES[appointmentInfo?.doctorId] || 'Your Doctor';
   const specialty = DOCTOR_SPECIALTIES[appointmentInfo?.doctorId] || '';
   const date = appointmentInfo?.date ? formatDate(appointmentInfo.date) : '—';
@@ -128,6 +128,29 @@ export default function ConfirmationScreen({ appointmentInfo }) {
           </span>
         </p>
       </div>
+
+      {/* Start Over */}
+      <button
+        onClick={onReset}
+        style={{
+          marginTop: 4,
+          padding: '12px 32px',
+          borderRadius: 12,
+          border: '1px solid rgba(255,255,255,0.15)',
+          background: 'rgba(255,255,255,0.06)',
+          color: '#94A3B8',
+          fontSize: 15,
+          fontWeight: 500,
+          cursor: 'pointer',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          transition: 'background 0.2s, color 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#F8FAFC'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#94A3B8'; }}
+      >
+        Start Over
+      </button>
     </div>
   );
 }

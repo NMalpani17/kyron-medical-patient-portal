@@ -41,6 +41,7 @@ export default function ChatWindow({
   availableSlots,
   patientPhone,
   patientName,
+  onReset,
 }) {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef(null);
@@ -128,6 +129,7 @@ export default function ChatWindow({
           sessionId={sessionId}
           patientPhone={patientPhone}
           patientName={patientName}
+          onReset={onReset}
         />
       </div>
 
@@ -143,7 +145,7 @@ export default function ChatWindow({
         }}
       >
         {appointmentBooked ? (
-          <ConfirmationScreen appointmentInfo={appointmentInfo} />
+          <ConfirmationScreen appointmentInfo={appointmentInfo} onReset={onReset} />
         ) : (
           <>
             {messages.map((msg) => (

@@ -3,7 +3,7 @@ import { initiateVoiceCall } from '../services/api';
 
 const STATES = { idle: 'idle', calling: 'calling', done: 'done' };
 
-export default function VoiceCallButton({ sessionId, patientPhone, patientName }) {
+export default function VoiceCallButton({ sessionId, patientPhone, patientName, onReset }) {
   const [status, setStatus] = useState(STATES.idle);
   const [toast, setToast] = useState(null);
 
@@ -72,6 +72,33 @@ export default function VoiceCallButton({ sessionId, patientPhone, patientName }
           </>
         )}
       </button>
+
+      {/* Start Over after call scheduled */}
+      {status === STATES.done && (
+        <button
+          onClick={onReset}
+          style={{
+            marginTop: 8,
+            display: 'block',
+            width: '100%',
+            padding: '7px 0',
+            borderRadius: 20,
+            border: '1px solid rgba(255,255,255,0.15)',
+            background: 'rgba(255,255,255,0.06)',
+            color: '#94A3B8',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            transition: 'background 0.2s, color 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#F8FAFC'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#94A3B8'; }}
+        >
+          Start Over
+        </button>
+      )}
 
       {/* Toast */}
       {toast && (

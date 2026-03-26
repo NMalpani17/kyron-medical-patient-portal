@@ -44,6 +44,16 @@ class VoiceService {
     }
 
     prompt +=
+      '\nKYRON MEDICAL PRACTICE INFORMATION:\n' +
+      '- Name: Kyron Medical Practice\n' +
+      '- Address: 123 Medical Plaza, Providence, RI 02903\n' +
+      '- Phone: (401) 555-0100\n' +
+      '- Hours: Monday–Friday 8:00 AM – 6:00 PM, Saturday 9:00 AM – 1:00 PM, Sunday closed\n' +
+      '- Doctors: Dr. Anita Patel (Cardiologist), Dr. James Ortega (Orthopedic Surgeon), Dr. Sarah Kim (Dermatologist), Dr. Michael Chen (Neurologist)\n' +
+      '- Services: Appointment scheduling, prescription refills, specialist consultations\n' +
+      'Answer any question about the practice using only the information above. Only say "please visit our website or call our main line" if the patient asks something not covered by the above information.\n';
+
+    prompt +=
       '\nVOICE CALL WORKFLOW:\n' +
       '1. Greet: "Hi [name], I\'m the Kyron Medical assistant. What brings you in today?"\n' +
       '2. Patient gives reason → match to specialist → say: "I can schedule you with [doctor.name], our [doctor.specialty]. What day works best for you?"\n' +

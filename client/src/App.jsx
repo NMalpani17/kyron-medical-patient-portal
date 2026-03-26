@@ -49,7 +49,7 @@ function BackgroundOrbs() {
 }
 
 export default function App() {
-  const [sessionId] = useState(() =>
+  const [sessionId, setSessionId] = useState(() =>
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : generateId()
@@ -58,6 +58,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [patientInfo, setPatientInfo] = useState(null);
+  const [resetKey, setResetKey] = useState(0);
   const [appointmentBooked, setAppointmentBooked] = useState(false);
   const [appointmentInfo, setAppointmentInfo] = useState(null);
   const greetingSent = useRef(false);
@@ -84,7 +85,11 @@ export default function App() {
 
         try {
           const { slots, patientInfo: pi } = await getSlotsForSession(sessionId);
-          if (slots.length > 0) setAvailableSlots(slots.slice(0, 5));
+          if (slots.length > 0 && pi?.email) {
+            setAvailableSlots(slots.slice(0, 5));
+          } else {
+            setAvailableSlots([]);
+          }
           if (pi) setPatientInfo((prev) => ({ ...prev, ...pi }));
         } catch {
           // non-fatal
@@ -104,6 +109,20 @@ export default function App() {
     },
     [sessionId, appointmentBooked]
   );
+
+  const handleReset = useCallback(() => {
+    setAppointmentBooked(false);
+    setAppointmentInfo(null);
+    setMessages([]);
+    setAvailableSlots([]);
+    setPatientInfo(null);
+    setSessionId(
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : generateId()
+    );
+    setResetKey((k) => k + 1);
+  }, []);
 
   const handleSlotBook = useCallback(
     async ({ date, time }) => {
@@ -174,6 +193,7 @@ export default function App() {
     <div style={BG_STYLE}>
       <BackgroundOrbs />
       <ChatWindow
+        key={resetKey}
         messages={messages}
         isLoading={isLoading}
         appointmentBooked={appointmentBooked}
@@ -184,6 +204,7 @@ export default function App() {
         availableSlots={availableSlots}
         patientPhone={patientInfo?.phone || null}
         patientName={patientInfo?.firstName || null}
+        onReset={handleReset}
       />
     </div>
   );
