@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import AppointmentSlotCard from './AppointmentSlotCard';
 
-// Matches lines like:
-//   "- Monday March 31 at 9:00 AM"
-//   "- Wednesday, March 25 at 3:00 PM"   ← comma after day name is optional
-//   "• Tuesday April 7 at 2:30 PM"
+// Matches bulleted or numbered slot lines.
+// Handles both "Friday, March 27 at 10:00 AM" and "Friday, March 27, 2026, at 10:00 AM"
 const SLOT_LINE_RE =
-  /^[\-•*]\s*((?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+\w+\s+\d+\s+at\s+\d+:\d+\s*[AP]M)/im;
+  /^(?:[\-•*]|\d+\.)\s*((?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+\w+\s+\d+(?:,?\s*\d{4})?,?\s+at\s+\d{1,2}:\d{2}\s*(?:AM|PM))/im;
+
+// Slot lines carry only the visible label. The actual date and time for booking
+// are resolved in App.jsx by matching against the real slot list from the server.
+function parseSlotLine(m) {
+  return { label: m[1].trim() };
+}
 
 function parseMessageParts(content) {
-  const lines = content.split('\n');
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = normalized.split('\n');
   const parts = [];
   let textBuffer = [];
 
@@ -20,9 +25,9 @@ function parseMessageParts(content) {
         parts.push({ type: 'text', value: textBuffer.join('\n') });
         textBuffer = [];
       }
-      parts.push({ type: 'slot', value: m[1].trim() });
+      parts.push({ type: 'slot', ...parseSlotLine(m) });
     } else {
-      textBuffer.push(line);
+      textBuffer.push(line.trimEnd());
     }
   }
 
@@ -51,14 +56,30 @@ const userBubble = {
   maxWidth: '80%',
 };
 
-export default function MessageBubble({ message, onSlotSelect }) {
+export default function MessageBubble({ message, onSlotSelect, doctors }) {
   const isAI = message.role === 'assistant';
-  const parts = isAI ? parseMessageParts(message.content) : null;
-  const hasSlots = isAI && parts.some((p) => p.type === 'slot');
+
+  const [parts, setParts] = useState(() =>
+    isAI ? parseMessageParts(message.content) : null
+  );
+
+  useEffect(() => {
+    setParts(isAI ? parseMessageParts(message.content) : null);
+  }, [isAI, message.content]);
+
+  // Debug: log doctors prop on first render of any message that contains slot cards
+  useEffect(() => {
+    if (!isAI || !parts) return;
+    const hasSlots = parts.some((p) => p.type === 'slot');
+    if (hasSlots) {
+      console.log('[MessageBubble] Slot message mounted — doctors prop:', doctors);
+      console.log('[MessageBubble] Parsed parts:', parts);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div
-      className={`flex items-end gap-2 mb-4 ${isAI ? 'justify-start anim-slide-in-left' : 'justify-end anim-slide-in-right'}`}
+      className={`flex items-end gap-2 mb-4 ${isAI ? 'justify-start' : 'justify-end anim-slide-in-right'}`}
     >
       {/* AI avatar */}
       {isAI && (
@@ -81,10 +102,11 @@ export default function MessageBubble({ message, onSlotSelect }) {
       {/* Bubble */}
       {isAI ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: '82%' }}>
-          {parts.map((part, i) =>
-            part.type === 'text' ? (
+          {parts.map((part, i) => {
+            console.log('rendering part:', part);
+            return part.type === 'text' ? (
               part.value.trim() ? (
-                <div key={i} style={aiGlass}>
+                <div key={i} className="anim-slide-in-left" style={aiGlass}>
                   <p style={{ color: '#F8FAFC', fontSize: 15, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                     {part.value.trim()}
                   </p>
@@ -93,12 +115,12 @@ export default function MessageBubble({ message, onSlotSelect }) {
             ) : (
               <AppointmentSlotCard
                 key={i}
-                slot={part.value}
+                slot={part}
                 onSelect={onSlotSelect}
                 index={i}
               />
-            )
-          )}
+            );
+          })}
         </div>
       ) : (
         <div style={userBubble}>

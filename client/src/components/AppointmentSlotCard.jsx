@@ -16,18 +16,24 @@ const cardBase = {
   userSelect: 'none',
 };
 
+// slot: { date: string, time: string, label: string }
+// onSelect: ({ date, time, label }) => void
 export default function AppointmentSlotCard({ slot, onSelect, index = 0 }) {
+  function handleSelect() {
+    onSelect({ date: slot.date, time: slot.time, label: slot.label });
+  }
+
   return (
     <div
-      className="slot-card anim-slot-fade-in"
-      style={{ ...cardBase, animationDelay: `${index * 0.06}s` }}
-      onClick={() => onSelect(slot)}
+      className="slot-card"
+      style={cardBase}
+      onClick={handleSelect}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onSelect(slot)}
+      onKeyDown={(e) => e.key === 'Enter' && handleSelect()}
     >
       <span style={{ fontSize: 16 }}>📅</span>
-      <span style={{ color: '#F8FAFC', fontSize: 14, fontWeight: 500 }}>{slot}</span>
+      <span style={{ color: '#F8FAFC', fontSize: 14, fontWeight: 500 }}>{slot.label}</span>
       <span style={{ marginLeft: 'auto', color: '#3B82F6', fontSize: 12, fontWeight: 600 }}>
         Select →
       </span>

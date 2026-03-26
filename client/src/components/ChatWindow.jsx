@@ -3,6 +3,7 @@ import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import VoiceCallButton from "./VoiceCallButton";
 import ConfirmationScreen from "./ConfirmationScreen";
+import AppointmentSlotCard from "./AppointmentSlotCard";
 
 const glass = {
   background: "rgba(255, 255, 255, 0.08)",
@@ -22,6 +23,13 @@ const inputGlass = {
   boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
 };
 
+function formatSlotLabel(slot) {
+  const d = new Date(slot.date + 'T00:00:00');
+  const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+  const monthDay = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  return `${dayName}, ${monthDay} at ${slot.time}`;
+}
+
 export default function ChatWindow({
   messages,
   isLoading,
@@ -29,15 +37,18 @@ export default function ChatWindow({
   appointmentInfo,
   sessionId,
   onSendMessage,
+  onSlotBook,
+  doctors,
+  availableSlots,
 }) {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages or when slot cards appear
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, availableSlots]);
 
   // Focus input on mount
   useEffect(() => {
@@ -59,9 +70,9 @@ export default function ChatWindow({
     }
   }
 
-  function handleSlotSelect(slotText) {
-    if (isLoading) return;
-    onSendMessage(`I'd like to book ${slotText}`);
+  function handleSlotSelect(slotData) {
+    if (isLoading || appointmentBooked) return;
+    onSlotBook(slotData);
   }
 
   // Extract phone + name from messages for voice button
@@ -146,8 +157,24 @@ export default function ChatWindow({
                 key={msg.id}
                 message={msg}
                 onSlotSelect={handleSlotSelect}
+                doctors={doctors}
               />
             ))}
+
+            {/* Slot cards — rendered from real server data, never from GPT text */}
+            {availableSlots.length > 0 && !isLoading && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "4px 0 8px 44px" }}>
+                {availableSlots.map((slot, i) => (
+                  <AppointmentSlotCard
+                    key={`${slot.date}-${slot.time}`}
+                    slot={{ date: slot.date, time: slot.time, label: formatSlotLabel(slot) }}
+                    onSelect={handleSlotSelect}
+                    index={i}
+                  />
+                ))}
+              </div>
+            )}
+
             {isLoading && <TypingIndicator />}
             <div ref={messagesEndRef} />
           </>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ChatWindow from './components/ChatWindow';
-import { sendMessage } from './services/api';
+import { sendMessage, bookAppointment, getDoctors, getSlotsForSession } from './services/api';
+
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -55,17 +56,24 @@ export default function App() {
       ? crypto.randomUUID()
       : generateId()
   );
+  const [doctors, setDoctors] = useState([]);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [appointmentBooked, setAppointmentBooked] = useState(false);
   const [appointmentInfo, setAppointmentInfo] = useState(null);
   const greetingSent = useRef(false);
 
+  // Fetch doctors on mount so they are available before the first slot message renders
+  useEffect(() => {
+    getDoctors().then(setDoctors).catch(() => {});
+  }, []);
+
   const handleSendMessage = useCallback(
     async (text) => {
-      // Optimistically add user message (unless it's the hidden greeting trigger)
-      const isGreeting = text === 'START_CONVERSATION';
+      if (appointmentBooked) return;
 
+      const isGreeting = text === 'START_CONVERSATION';
       if (!isGreeting) {
         setMessages((prev) => [
           ...prev,
@@ -74,18 +82,20 @@ export default function App() {
       }
 
       setIsLoading(true);
-
       try {
         const data = await sendMessage(sessionId, text);
-
         setMessages((prev) => [
           ...prev,
           { id: generateId(), role: 'assistant', content: data.reply },
         ]);
 
-        if (data.appointmentBooked === true) {
-          setAppointmentBooked(true);
-          setAppointmentInfo(data.appointmentInfo || null);
+        // After every AI response, check if a doctor has been matched and fetch
+        // their real available slots. Slot display is fully server-driven.
+        try {
+          const { slots } = await getSlotsForSession(sessionId);
+          if (slots.length > 0) setAvailableSlots(slots.slice(0, 5));
+        } catch {
+          // Non-fatal — slots will appear on the next successful fetch
         }
       } catch (err) {
         setMessages((prev) => [
@@ -93,15 +103,78 @@ export default function App() {
           {
             id: generateId(),
             role: 'assistant',
-            content:
-              "I'm sorry, I encountered an error. Please try again in a moment.",
+            content: "I'm sorry, I encountered an error. Please try again in a moment.",
           },
         ]);
       } finally {
         setIsLoading(false);
       }
     },
-    [sessionId]
+    [sessionId, appointmentBooked]
+  );
+
+  // Slot cards pass { date, time } directly from real server data — no parsing needed.
+  const handleSlotBook = useCallback(
+    async ({ date, time, label }) => {
+      if (appointmentBooked || isLoading) return;
+
+      setIsLoading(true);
+      try {
+        const { doctor, patientInfo, slots } = await getSlotsForSession(sessionId);
+        if (!doctor) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateId(),
+              role: 'assistant',
+              content: "Please share your reason for visiting before selecting a slot.",
+            },
+          ]);
+          return;
+        }
+
+        // Verify the slot still exists in the live list before booking
+        const confirmed = slots.find((s) => s.date === date && s.time === time);
+        if (!confirmed) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateId(),
+              role: 'assistant',
+              content: "That slot is no longer available. Please choose another time.",
+            },
+          ]);
+          setAvailableSlots(slots);
+          return;
+        }
+
+        console.log('[App] patient info:', patientInfo);
+        console.log('[App] bookAppointment payload:', { doctorId: doctor.id, date, time });
+        const appointment = await bookAppointment({
+          doctorId: doctor.id,
+          date,
+          time,
+          patient: patientInfo,
+          sessionId,
+        });
+
+        setAppointmentBooked(true);
+        setAppointmentInfo(appointment);
+      } catch (err) {
+        console.error('[App] Booking failed:', err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: generateId(),
+            role: 'assistant',
+            content: "I wasn't able to book that slot — it may no longer be available. Please choose another time.",
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sessionId, appointmentBooked, isLoading]
   );
 
   // Send greeting on mount
@@ -121,6 +194,9 @@ export default function App() {
         appointmentInfo={appointmentInfo}
         sessionId={sessionId}
         onSendMessage={handleSendMessage}
+        onSlotBook={handleSlotBook}
+        doctors={doctors}
+        availableSlots={availableSlots}
       />
     </div>
   );

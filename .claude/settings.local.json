@@ -10,7 +10,8 @@
       "Bash(while read:*)",
       "Bash(do powershell:*)",
       "Bash(done)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(timeout 8 npm run dev)"
     ]
   }
 }

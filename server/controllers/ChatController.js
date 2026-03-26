@@ -14,14 +14,9 @@ class ChatController {
         throw err;
       }
 
-      const { reply, appointmentInfo } = await this.chatService.sendMessage(sessionId, message);
+      const { reply } = await this.chatService.sendMessage(sessionId, message);
 
-      res.json({
-        reply,
-        sessionId,
-        appointmentBooked: !!appointmentInfo,
-        appointmentInfo: appointmentInfo || null,
-      });
+      res.json({ reply, sessionId });
     } catch (err) {
       next(err);
     }

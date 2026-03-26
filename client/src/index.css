@@ -58,7 +58,7 @@
 .anim-slide-in-left   { animation: slideInLeft 0.35s cubic-bezier(0.22,1,0.36,1) both; }
 .anim-slide-in-right  { animation: slideInRight 0.35s cubic-bezier(0.22,1,0.36,1) both; }
 .anim-scale-in        { animation: scaleIn 0.45s cubic-bezier(0.22,1,0.36,1) both; }
-.anim-slot-fade-in    { animation: slotFadeIn 0.3s ease both; }
+.anim-slot-fade-in    { animation: slotFadeIn 0.3s ease forwards; }
 
 .typing-dot {
   width: 7px;

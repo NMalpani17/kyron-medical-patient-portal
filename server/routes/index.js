@@ -12,7 +12,7 @@ const voiceController = require('../controllers/VoiceController');
 // Dependency injection chain
 const appointmentService = new AppointmentService(doctorRepository);
 const chatService = new ChatService(appointmentService, doctorMatchService, doctorRepository);
-const appointmentController = new AppointmentController(appointmentService);
+const appointmentController = new AppointmentController(appointmentService, doctorRepository, chatService);
 const chatController = new ChatController(chatService);
 
 // Health
@@ -40,6 +40,29 @@ router.get('/doctors/:id', (req, res, next) => {
 // Appointments
 router.get('/appointment/slots/:doctorId', appointmentController.getSlots);
 router.post('/appointment/book', appointmentController.bookAppointment);
+
+// Patient context — returns patientInfo + matched doctor for a session
+router.get('/appointment/patient-context/:sessionId', (req, res, next) => {
+  try {
+    const context = chatService.getConversationContext(req.params.sessionId);
+    res.json(context);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Slots for session — returns the matched doctor and their real available slots.
+// Returns { doctor: null, slots: [] } when no doctor has been matched yet.
+router.get('/appointment/slots-for-session/:sessionId', (req, res, next) => {
+  try {
+    const { doctor, patientInfo } = chatService.getConversationContext(req.params.sessionId);
+    if (!doctor) return res.json({ doctor: null, patientInfo: null, slots: [] });
+    const slots = appointmentService.getSlots(doctor.id);
+    res.json({ doctor, patientInfo, slots });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Chat
 router.post('/chat', chatController.chat);
