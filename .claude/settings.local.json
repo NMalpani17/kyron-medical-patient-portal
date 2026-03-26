@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -Command \"Stop-Process -Id 34320 -Force\")"
+    ]
+  }
+}
