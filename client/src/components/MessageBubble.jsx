@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentSlotCard from './AppointmentSlotCard';
 
-// Matches bulleted or numbered slot lines.
-// Handles both "Friday, March 27 at 10:00 AM" and "Friday, March 27, 2026, at 10:00 AM"
 const SLOT_LINE_RE =
   /^(?:[\-•*]|\d+\.)\s*((?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+\w+\s+\d+(?:,?\s*\d{4})?,?\s+at\s+\d{1,2}:\d{2}\s*(?:AM|PM))/im;
 
-// Slot lines carry only the visible label. The actual date and time for booking
-// are resolved in App.jsx by matching against the real slot list from the server.
 function parseSlotLine(m) {
   return { label: m[1].trim() };
 }
@@ -56,7 +52,7 @@ const userBubble = {
   maxWidth: '80%',
 };
 
-export default function MessageBubble({ message, onSlotSelect, doctors }) {
+export default function MessageBubble({ message, onSlotSelect }) {
   const isAI = message.role === 'assistant';
 
   const [parts, setParts] = useState(() =>
@@ -67,21 +63,10 @@ export default function MessageBubble({ message, onSlotSelect, doctors }) {
     setParts(isAI ? parseMessageParts(message.content) : null);
   }, [isAI, message.content]);
 
-  // Debug: log doctors prop on first render of any message that contains slot cards
-  useEffect(() => {
-    if (!isAI || !parts) return;
-    const hasSlots = parts.some((p) => p.type === 'slot');
-    if (hasSlots) {
-      console.log('[MessageBubble] Slot message mounted — doctors prop:', doctors);
-      console.log('[MessageBubble] Parsed parts:', parts);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   return (
     <div
       className={`flex items-end gap-2 mb-4 ${isAI ? 'justify-start' : 'justify-end anim-slide-in-right'}`}
     >
-      {/* AI avatar */}
       {isAI && (
         <div
           style={{
@@ -99,12 +84,10 @@ export default function MessageBubble({ message, onSlotSelect, doctors }) {
         </div>
       )}
 
-      {/* Bubble */}
       {isAI ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: '82%' }}>
-          {parts.map((part, i) => {
-            console.log('rendering part:', part);
-            return part.type === 'text' ? (
+          {parts.map((part, i) =>
+            part.type === 'text' ? (
               part.value.trim() ? (
                 <div key={i} className="anim-slide-in-left" style={aiGlass}>
                   <p style={{ color: '#F8FAFC', fontSize: 15, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
@@ -119,8 +102,8 @@ export default function MessageBubble({ message, onSlotSelect, doctors }) {
                 onSelect={onSlotSelect}
                 index={i}
               />
-            );
-          })}
+            )
+          )}
         </div>
       ) : (
         <div style={userBubble}>

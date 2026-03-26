@@ -7,12 +7,10 @@ class VoiceService {
   }
 
   buildVoiceSystemPrompt(patientInfo, doctor, messages) {
-    console.log('[VoiceService] building prompt with doctor:', JSON.stringify(doctor));
     const firstName = patientInfo?.firstName || '';
     const lastName = patientInfo?.lastName || '';
     const fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown';
 
-    // Summarise the conversation in plain text (last 8 turns)
     const recent = (messages || []).slice(-8);
     const summary = recent
       .map((m) => `${m.role === 'user' ? 'Patient' : 'Assistant'}: ${m.content}`)

@@ -22,7 +22,6 @@ class VoiceController {
 
       const { patientInfo, doctor } = this.chatService.getConversationContext(sessionId);
       const conversationHistory = this.chatService.getConversationMessages(sessionId);
-      console.log('[VoiceController] received phone:', req.body.phone, 'patientInfo:', patientInfo);
 
       await this.voiceService.initiateCall({
         phone,

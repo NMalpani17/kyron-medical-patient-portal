@@ -29,8 +29,6 @@ class ChatService {
     return this.conversations.get(sessionId);
   }
 
-  // Finds a conversation by patient phone number (used by voice webhook).
-  // Returns { patientInfo, doctor } or null if not found.
   getConversationByPhone(phone) {
     const digits = String(phone).replace(/\D/g, '');
     for (const conversation of this.conversations.values()) {
@@ -47,15 +45,12 @@ class ChatService {
     return null;
   }
 
-  // Returns the raw message array for a session (used by VoiceController).
   getConversationMessages(sessionId) {
     const conversation = this.conversations.get(sessionId);
     if (!conversation) return [];
     return conversation.messages.map(({ role, content }) => ({ role, content }));
   }
 
-  // Returns the current patientInfo and matched doctor for a session.
-  // Used by the frontend to get doctorId when a slot card is clicked.
   getConversationContext(sessionId) {
     const conversation = this.conversations.get(sessionId);
     if (!conversation) return { patientInfo: null, doctor: null };
@@ -77,7 +72,6 @@ class ChatService {
     }
 
     const systemPrompt = this.buildSystemPrompt(conversation);
-
     const historyMessages = conversation.messages.map(({ role, content }) => ({ role, content }));
 
     if (isGreeting) {
@@ -99,7 +93,6 @@ class ChatService {
     });
 
     const reply = completion.choices[0].message.content;
-    console.log('[ChatService] GPT response:\n', reply);
 
     conversation.addMessage('assistant', reply);
     this.extractPatientInfo(conversation, userMessage, reply);
@@ -162,7 +155,6 @@ STYLE:
 
     let updated = { ...current };
 
-    // First name
     if (!updated.firstName) {
       const namePatternMatch = allUserText.match(
         /(?:my name is|i(?:'m| am)|name\s*[:\-])\s+([A-Z][a-z]+)/i
@@ -178,25 +170,21 @@ STYLE:
       }
     }
 
-    // Email
     if (!updated.email) {
       const emailMatch = allUserText.match(/[\w.-]+@[\w.-]+\.\w+/);
       if (emailMatch) updated.email = emailMatch[0];
     }
 
-    // Phone
     if (!updated.phone) {
       const phoneMatch = allUserText.match(/\b(\+?1?\s?[-.]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})\b/);
       if (phoneMatch) updated.phone = phoneMatch[1].trim();
     }
 
-    // Reason
     if (!updated.reason) {
       const doctor = this.doctorMatchService.matchDoctor(allUserText);
       if (doctor) updated.reason = allUserText.slice(0, 200);
     }
 
-    console.log('[extractPatientInfo] phone found:', updated.phone, 'email found:', updated.email);
     conversation.patientInfo = updated;
   }
 }

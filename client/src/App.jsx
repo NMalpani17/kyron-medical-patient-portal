@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ChatWindow from './components/ChatWindow';
-import { sendMessage, bookAppointment, getDoctors, getSlotsForSession } from './services/api';
-
+import { sendMessage, bookAppointment, getSlotsForSession } from './services/api';
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -17,7 +16,6 @@ const BG_STYLE = {
   overflow: 'hidden',
 };
 
-// Subtle animated orb behind the chat for visual depth
 function BackgroundOrbs() {
   return (
     <>
@@ -56,7 +54,6 @@ export default function App() {
       ? crypto.randomUUID()
       : generateId()
   );
-  const [doctors, setDoctors] = useState([]);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
@@ -64,11 +61,6 @@ export default function App() {
   const [appointmentBooked, setAppointmentBooked] = useState(false);
   const [appointmentInfo, setAppointmentInfo] = useState(null);
   const greetingSent = useRef(false);
-
-  // Fetch doctors on mount so they are available before the first slot message renders
-  useEffect(() => {
-    getDoctors().then(setDoctors).catch(() => {});
-  }, []);
 
   const handleSendMessage = useCallback(
     async (text) => {
@@ -90,16 +82,14 @@ export default function App() {
           { id: generateId(), role: 'assistant', content: data.reply },
         ]);
 
-        // After every AI response, check if a doctor has been matched and fetch
-        // their real available slots. Slot display is fully server-driven.
         try {
           const { slots, patientInfo: pi } = await getSlotsForSession(sessionId);
           if (slots.length > 0) setAvailableSlots(slots.slice(0, 5));
           if (pi) setPatientInfo((prev) => ({ ...prev, ...pi }));
         } catch {
-          // Non-fatal — slots will appear on the next successful fetch
+          // non-fatal
         }
-      } catch (err) {
+      } catch {
         setMessages((prev) => [
           ...prev,
           {
@@ -115,9 +105,8 @@ export default function App() {
     [sessionId, appointmentBooked]
   );
 
-  // Slot cards pass { date, time } directly from real server data — no parsing needed.
   const handleSlotBook = useCallback(
-    async ({ date, time, label }) => {
+    async ({ date, time }) => {
       if (appointmentBooked || isLoading) return;
 
       setIsLoading(true);
@@ -129,13 +118,12 @@ export default function App() {
             {
               id: generateId(),
               role: 'assistant',
-              content: "Please share your reason for visiting before selecting a slot.",
+              content: 'Please share your reason for visiting before selecting a slot.',
             },
           ]);
           return;
         }
 
-        // Verify the slot still exists in the live list before booking
         const confirmed = slots.find((s) => s.date === date && s.time === time);
         if (!confirmed) {
           setMessages((prev) => [
@@ -143,15 +131,13 @@ export default function App() {
             {
               id: generateId(),
               role: 'assistant',
-              content: "That slot is no longer available. Please choose another time.",
+              content: 'That slot is no longer available. Please choose another time.',
             },
           ]);
           setAvailableSlots(slots);
           return;
         }
 
-        console.log('[App] patient info:', patientInfo);
-        console.log('[App] bookAppointment payload:', { doctorId: doctor.id, date, time });
         const appointment = await bookAppointment({
           doctorId: doctor.id,
           date,
@@ -162,8 +148,7 @@ export default function App() {
 
         setAppointmentBooked(true);
         setAppointmentInfo(appointment);
-      } catch (err) {
-        console.error('[App] Booking failed:', err);
+      } catch {
         setMessages((prev) => [
           ...prev,
           {
@@ -179,7 +164,6 @@ export default function App() {
     [sessionId, appointmentBooked, isLoading]
   );
 
-  // Send greeting on mount
   useEffect(() => {
     if (greetingSent.current) return;
     greetingSent.current = true;
@@ -197,7 +181,6 @@ export default function App() {
         sessionId={sessionId}
         onSendMessage={handleSendMessage}
         onSlotBook={handleSlotBook}
-        doctors={doctors}
         availableSlots={availableSlots}
         patientPhone={patientInfo?.phone || null}
         patientName={patientInfo?.firstName || null}

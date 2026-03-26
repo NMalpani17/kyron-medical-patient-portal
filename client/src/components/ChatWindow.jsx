@@ -38,7 +38,6 @@ export default function ChatWindow({
   sessionId,
   onSendMessage,
   onSlotBook,
-  doctors,
   availableSlots,
   patientPhone,
   patientName,
@@ -152,7 +151,6 @@ export default function ChatWindow({
                 key={msg.id}
                 message={msg}
                 onSlotSelect={handleSlotSelect}
-                doctors={doctors}
               />
             ))}
 

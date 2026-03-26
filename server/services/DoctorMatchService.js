@@ -16,11 +16,9 @@ class DoctorMatchService {
       for (const keyword of doctor.keywords) {
         const kLower = keyword.toLowerCase();
 
-        // Full phrase match in the reason string
         if (reasonForVisit.toLowerCase().includes(kLower)) {
-          score += kLower.split(' ').length; // multi-word keywords score higher
+          score += kLower.split(' ').length;
         } else {
-          // Individual word match against each keyword word
           for (const word of words) {
             if (kLower.includes(word) && word.length > 2) {
               score += 1;
