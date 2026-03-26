@@ -4,6 +4,18 @@ An AI-powered patient scheduling web application. Patients describe their sympto
 
 ---
 
+## Live Demo
+
+**http://18.219.236.217**
+
+---
+
+## GitHub Repository
+
+**https://github.com/NMalpani17/kyron-medical-patient-portal**
+
+---
+
 ## Tech Stack
 
 | Layer     | Technology                              |
