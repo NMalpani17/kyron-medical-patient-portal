@@ -10,22 +10,16 @@ An AI-powered patient scheduling web application. Patients describe their sympto
 
 ---
 
-## GitHub Repository
-
-**https://github.com/NMalpani17/kyron-medical-patient-portal**
-
----
-
 ## Tech Stack
 
-| Layer     | Technology                              |
-|-----------|-----------------------------------------|
-| Frontend  | React 18, Vite                          |
-| Backend   | Node.js, Express                        |
-| AI (chat) | OpenAI GPT-4o                           |
-| AI (voice)| Vapi (outbound phone calls)             |
-| Email     | Resend                                  |
-| Container | Docker, Docker Compose                  |
+| Layer      | Technology                  |
+| ---------- | --------------------------- |
+| Frontend   | React 18, Vite              |
+| Backend    | Node.js, Express            |
+| AI (chat)  | OpenAI GPT-4o               |
+| AI (voice) | Vapi (outbound phone calls) |
+| Email      | Resend                      |
+| Container  | Docker, Docker Compose      |
 
 ---
 
@@ -43,12 +37,12 @@ An AI-powered patient scheduling web application. Patients describe their sympto
 
 ## Doctors
 
-| Doctor           | Specialty          | Conditions                                          |
-|------------------|--------------------|-----------------------------------------------------|
-| Dr. Anita Patel  | Cardiologist       | Heart, chest pain, palpitations, blood pressure     |
-| Dr. James Ortega | Orthopedic Surgeon | Bones, joints, knee, back, shoulder, fractures      |
-| Dr. Sarah Kim    | Dermatologist      | Skin, rash, acne, moles, eczema                     |
-| Dr. Michael Chen | Neurologist        | Brain, headaches, migraines, dizziness, nerve pain  |
+| Doctor           | Specialty          | Conditions                                         |
+| ---------------- | ------------------ | -------------------------------------------------- |
+| Dr. Anita Patel  | Cardiologist       | Heart, chest pain, palpitations, blood pressure    |
+| Dr. James Ortega | Orthopedic Surgeon | Bones, joints, knee, back, shoulder, fractures     |
+| Dr. Sarah Kim    | Dermatologist      | Skin, rash, acne, moles, eczema                    |
+| Dr. Michael Chen | Neurologist        | Brain, headaches, migraines, dizziness, nerve pain |
 
 ---
 
@@ -63,13 +57,13 @@ An AI-powered patient scheduling web application. Patients describe their sympto
 
 Copy `.env.example` to `.env` in the project root and fill in:
 
-| Variable               | Description                             |
-|------------------------|-----------------------------------------|
-| `OPENAI_API_KEY`       | OpenAI API key                          |
-| `VAPI_API_KEY`         | Vapi API key for outbound voice calls   |
-| `VAPI_PHONE_NUMBER_ID` | Vapi phone number resource ID           |
-| `RESEND_API_KEY`       | Resend API key for confirmation emails  |
-| `PORT`                 | Server port (default: `3001`)           |
+| Variable               | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| `OPENAI_API_KEY`       | OpenAI API key                                         |
+| `VAPI_API_KEY`         | Vapi API key for outbound voice calls                  |
+| `VAPI_PHONE_NUMBER_ID` | Vapi phone number resource ID                          |
+| `RESEND_API_KEY`       | Resend API key for confirmation emails                 |
+| `PORT`                 | Server port (default: `3001`)                          |
 | `CLIENT_URL`           | Allowed CORS origin (default: `http://localhost:5173`) |
 
 ---
@@ -79,6 +73,7 @@ Copy `.env.example` to `.env` in the project root and fill in:
 ### Without Docker
 
 **Server:**
+
 ```bash
 cd server
 npm install
@@ -87,6 +82,7 @@ npm run dev
 ```
 
 **Client:**
+
 ```bash
 cd client
 npm install
@@ -108,15 +104,15 @@ docker-compose up --build
 
 ## API Endpoints
 
-| Method | Path                                          | Description                                      |
-|--------|-----------------------------------------------|--------------------------------------------------|
-| GET    | `/api/health`                                 | Health check                                     |
-| GET    | `/api/doctors`                                | List all doctors                                 |
-| GET    | `/api/doctors?keyword=`                       | Search doctors by symptom keyword                |
-| GET    | `/api/doctors/:id`                            | Get a single doctor                              |
-| GET    | `/api/appointment/slots/:doctorId`            | Get available slots for a doctor                 |
+| Method | Path                                            | Description                                     |
+| ------ | ----------------------------------------------- | ----------------------------------------------- |
+| GET    | `/api/health`                                   | Health check                                    |
+| GET    | `/api/doctors`                                  | List all doctors                                |
+| GET    | `/api/doctors?keyword=`                         | Search doctors by symptom keyword               |
+| GET    | `/api/doctors/:id`                              | Get a single doctor                             |
+| GET    | `/api/appointment/slots/:doctorId`              | Get available slots for a doctor                |
 | GET    | `/api/appointment/slots-for-session/:sessionId` | Get matched doctor and slots for a chat session |
-| POST   | `/api/appointment/book`                       | Book an appointment slot                         |
-| POST   | `/api/chat`                                   | Send a chat message and receive an AI reply      |
-| POST   | `/api/voice/initiate`                         | Initiate an outbound Vapi phone call             |
-| POST   | `/api/voice/webhook`                          | Receive Vapi end-of-call webhook                 |
+| POST   | `/api/appointment/book`                         | Book an appointment slot                        |
+| POST   | `/api/chat`                                     | Send a chat message and receive an AI reply     |
+| POST   | `/api/voice/initiate`                           | Initiate an outbound Vapi phone call            |
+| POST   | `/api/voice/webhook`                            | Receive Vapi end-of-call webhook                |
