@@ -11,7 +11,7 @@ const voiceController = require('../controllers/VoiceController');
 
 // Dependency injection chain
 const appointmentService = new AppointmentService(doctorRepository);
-const chatService = new ChatService(appointmentService, doctorMatchService);
+const chatService = new ChatService(appointmentService, doctorMatchService, doctorRepository);
 const appointmentController = new AppointmentController(appointmentService);
 const chatController = new ChatController(chatService);
 

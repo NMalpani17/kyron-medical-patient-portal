@@ -1,12 +1,14 @@
 const OpenAI = require('openai');
 const Conversation = require('../models/Conversation');
+const notificationService = require('./NotificationService');
 
 const APPOINTMENT_CONFIRMED_PREFIX = 'APPOINTMENT_CONFIRMED|';
 
 class ChatService {
-  constructor(appointmentService, doctorMatchService) {
+  constructor(appointmentService, doctorMatchService, doctorRepository) {
     this.appointmentService = appointmentService;
     this.doctorMatchService = doctorMatchService;
+    this.doctorRepository = doctorRepository;
     this.conversations = new Map();
     this._openai = null;
   }
@@ -197,6 +199,15 @@ STYLE:
       appointmentInfo = booked;
       conversation.appointmentInfo = booked;
       console.log('[ChatService] bookSlot succeeded:', JSON.stringify(booked));
+
+      // Send confirmation email — best-effort, never blocks the booking response
+      try {
+        const doctor = this.doctorRepository.getById(doctorId);
+        console.log('[ChatService] patientInfo at email send:', JSON.stringify(conversation.patientInfo));
+        await notificationService.sendConfirmationEmail(conversation.patientInfo, doctor, booked);
+      } catch (emailErr) {
+        console.error('[ChatService] Confirmation email failed (non-fatal):', emailErr.message);
+      }
     } catch (err) {
       console.error('[ChatService] bookSlot failed:', err.message);
       console.error('[ChatService] Doctor availability sample:',
@@ -211,26 +222,60 @@ STYLE:
   }
 
   extractPatientInfo(conversation, userMessage, aiResponse) {
-    if (conversation.patientInfo?.email) return; // already complete
-
-    const combined = `${userMessage} ${aiResponse}`.toLowerCase();
-
-    // Only attempt extraction if we haven't started yet OR we have a partial record
     const current = conversation.patientInfo || {};
 
-    // Simple heuristic extraction — GPT handles collection; this gives us a structured snapshot
-    if (!current.reason) {
-      // Look for reason keywords across all user messages so far
-      const allUserText = conversation.messages
-        .filter((m) => m.role === 'user')
-        .map((m) => m.content)
-        .join(' ');
+    // Scan the full user message history on every turn so fields found in any
+    // message are picked up, regardless of what order the patient provided them.
+    const allUserText = conversation.messages
+      .filter((m) => m.role === 'user')
+      .map((m) => m.content)
+      .join(' ');
 
-      const doctor = this.doctorMatchService.matchDoctor(allUserText);
-      if (doctor) {
-        conversation.patientInfo = { ...current, reason: allUserText.slice(0, 200) };
+    let updated = { ...current };
+
+    // First name — scan all user messages
+    if (!updated.firstName) {
+      // Try "my name is Firstname" / "name: Firstname" patterns first
+      const namePatternMatch = allUserText.match(
+        /(?:my name is|i(?:'m| am)|name\s*[:\-])\s+([A-Z][a-z]+)/i
+      );
+      if (namePatternMatch) {
+        updated.firstName = namePatternMatch[1];
+      } else {
+        // Fall back: first capitalised word in the earliest user message
+        const firstUserMsg = conversation.messages.find((m) => m.role === 'user');
+        if (firstUserMsg) {
+          const capWord = firstUserMsg.content.match(/\b([A-Z][a-z]{1,})\b/);
+          if (capWord) updated.firstName = capWord[1];
+        }
       }
     }
+
+    // Email — /[\w.-]+@[\w.-]+\.\w+/
+    if (!updated.email) {
+      const emailMatch = allUserText.match(/[\w.-]+@[\w.-]+\.\w+/);
+      if (emailMatch) {
+        updated.email = emailMatch[0];
+      }
+    }
+
+    // Phone — /[\d\s\-().+]{7,}/
+    if (!updated.phone) {
+      const phoneMatch = allUserText.match(/[\d\s\-().+]{7,}/);
+      if (phoneMatch) {
+        updated.phone = phoneMatch[0].trim();
+      }
+    }
+
+    // Reason — keyword match against the doctor roster
+    if (!updated.reason) {
+      const doctor = this.doctorMatchService.matchDoctor(allUserText);
+      if (doctor) {
+        updated.reason = allUserText.slice(0, 200);
+      }
+    }
+
+    conversation.patientInfo = updated;
   }
 
   extractAppointmentInfo(conversation, aiResponse) {
