@@ -7,6 +7,7 @@ class VoiceService {
   }
 
   buildVoiceSystemPrompt(patientInfo, doctor, messages) {
+    console.log('[VoiceService] building prompt with doctor:', JSON.stringify(doctor));
     const firstName = patientInfo?.firstName || '';
     const lastName = patientInfo?.lastName || '';
     const fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown';
@@ -29,7 +30,15 @@ class VoiceService {
     if (patientInfo?.reason) prompt += `Reason for visit: ${patientInfo.reason}\n`;
 
     if (doctor) {
-      prompt += `\nMATCHED SPECIALIST: ${doctor.name} (${doctor.specialty})\n`;
+      prompt += `\nSPECIALIST: The patient must be scheduled with ${doctor.name} (${doctor.specialty}). Use this exact name. Do not invent any other doctor name.\n`;
+    } else {
+      prompt +=
+        '\nSPECIALIST MATCHING: When the patient tells you their reason for visit, match them to the correct specialist from this list:\n' +
+        '- Heart, chest pain, palpitations → Dr. Anita Patel, Cardiologist\n' +
+        '- Bones, joints, knee, back, shoulder → Dr. James Ortega, Orthopedic Surgeon\n' +
+        '- Skin, rash, acne, moles → Dr. Sarah Kim, Dermatologist\n' +
+        '- Brain, headaches, migraines, dizziness → Dr. Michael Chen, Neurologist\n\n' +
+        'Always use the exact doctor name from this list. Never invent a doctor name.\n';
     }
 
     if (summary) {
@@ -37,8 +46,19 @@ class VoiceService {
     }
 
     prompt +=
-      '\nYour job is to help the patient complete or confirm their appointment booking. ' +
-      'NEVER provide medical advice or diagnoses. Keep responses short — this is a phone call.';
+      '\nVOICE CALL WORKFLOW:\n' +
+      '1. Greet: "Hi [name], I\'m the Kyron Medical assistant. What brings you in today?"\n' +
+      '2. Patient gives reason → match to specialist → say: "I can schedule you with [doctor.name], our [doctor.specialty]. What day works best for you?"\n' +
+      '3. Patient gives day → suggest 2-3 available time slots for that day.\n' +
+      '4. Patient confirms time → say EXACTLY: "Perfect, your appointment with [doctor.name] is confirmed for [day] at [time]. A confirmation email will be sent to your inbox. We will see you then, take care!" → end call immediately.\n\n' +
+      'RULES:\n' +
+      '- Never ask for name, email, or phone — you already have those.\n' +
+      '- Never ask which doctor — you determine from the reason.\n' +
+      '- Never say "I will check availability" — just offer the slots directly.\n' +
+      '- End the call immediately after the confirmation phrase.\n' +
+      '- Also end the call if the patient says goodbye, bye, or thank you.\n' +
+      '- Keep all responses short — this is a phone call.\n' +
+      '- NEVER provide medical advice or diagnoses.';
 
     return prompt;
   }
@@ -69,6 +89,10 @@ class VoiceService {
       assistant: {
         name: 'Kyron Medical Assistant',
         firstMessage: `Hi ${firstName}, this is the Kyron Medical assistant continuing from your web chat. How can I help you?`,
+        endCallFunctionEnabled: true,
+        silenceTimeoutSeconds: 30,
+        maxDurationSeconds: 300,
+        endCallPhrases: ['take care', 'goodbye', 'see you then', 'have a good day'],
         voice: {
           provider: 'vapi',
           voiceId: 'Elliot',

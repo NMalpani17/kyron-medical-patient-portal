@@ -73,5 +73,6 @@ router.post('/chat', chatController.chat);
 // Voice
 router.post('/voice/initiate', voiceController.initiate);
 router.post('/voice/context', voiceController.context);
+router.post('/voice/webhook', voiceController.webhook);
 
 module.exports = router;

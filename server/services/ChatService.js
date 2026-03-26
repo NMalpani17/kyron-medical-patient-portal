@@ -29,6 +29,24 @@ class ChatService {
     return this.conversations.get(sessionId);
   }
 
+  // Finds a conversation by patient phone number (used by voice webhook).
+  // Returns { patientInfo, doctor } or null if not found.
+  getConversationByPhone(phone) {
+    const digits = String(phone).replace(/\D/g, '');
+    for (const conversation of this.conversations.values()) {
+      const stored = String(conversation.patientInfo?.phone || '').replace(/\D/g, '');
+      if (stored && stored === digits) {
+        const patientInfo = conversation.patientInfo;
+        let doctor = null;
+        if (patientInfo?.reason) {
+          doctor = this.doctorMatchService.matchDoctor(patientInfo.reason);
+        }
+        return { patientInfo, doctor };
+      }
+    }
+    return null;
+  }
+
   // Returns the raw message array for a session (used by VoiceController).
   getConversationMessages(sessionId) {
     const conversation = this.conversations.get(sessionId);
