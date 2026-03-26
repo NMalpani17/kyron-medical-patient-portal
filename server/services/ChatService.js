@@ -29,6 +29,13 @@ class ChatService {
     return this.conversations.get(sessionId);
   }
 
+  // Returns the raw message array for a session (used by VoiceController).
+  getConversationMessages(sessionId) {
+    const conversation = this.conversations.get(sessionId);
+    if (!conversation) return [];
+    return conversation.messages.map(({ role, content }) => ({ role, content }));
+  }
+
   // Returns the current patientInfo and matched doctor for a session.
   // Used by the frontend to get doctorId when a slot card is clicked.
   getConversationContext(sessionId) {
@@ -161,8 +168,8 @@ STYLE:
 
     // Phone
     if (!updated.phone) {
-      const phoneMatch = allUserText.match(/[\d\s\-().+]{7,}/);
-      if (phoneMatch) updated.phone = phoneMatch[0].trim();
+      const phoneMatch = allUserText.match(/\b(\+?1?\s?[-.]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})\b/);
+      if (phoneMatch) updated.phone = phoneMatch[1].trim();
     }
 
     // Reason
@@ -171,6 +178,7 @@ STYLE:
       if (doctor) updated.reason = allUserText.slice(0, 200);
     }
 
+    console.log('[extractPatientInfo] phone found:', updated.phone, 'email found:', updated.email);
     conversation.patientInfo = updated;
   }
 }

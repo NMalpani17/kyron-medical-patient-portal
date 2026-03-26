@@ -60,6 +60,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [patientInfo, setPatientInfo] = useState(null);
   const [appointmentBooked, setAppointmentBooked] = useState(false);
   const [appointmentInfo, setAppointmentInfo] = useState(null);
   const greetingSent = useRef(false);
@@ -92,8 +93,9 @@ export default function App() {
         // After every AI response, check if a doctor has been matched and fetch
         // their real available slots. Slot display is fully server-driven.
         try {
-          const { slots } = await getSlotsForSession(sessionId);
+          const { slots, patientInfo: pi } = await getSlotsForSession(sessionId);
           if (slots.length > 0) setAvailableSlots(slots.slice(0, 5));
+          if (pi) setPatientInfo((prev) => ({ ...prev, ...pi }));
         } catch {
           // Non-fatal — slots will appear on the next successful fetch
         }
@@ -197,6 +199,8 @@ export default function App() {
         onSlotBook={handleSlotBook}
         doctors={doctors}
         availableSlots={availableSlots}
+        patientPhone={patientInfo?.phone || null}
+        patientName={patientInfo?.firstName || null}
       />
     </div>
   );

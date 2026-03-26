@@ -3,20 +3,20 @@ import { initiateVoiceCall } from '../services/api';
 
 const STATES = { idle: 'idle', calling: 'calling', done: 'done' };
 
-export default function VoiceCallButton({ sessionId, patientPhone, patientName, conversationHistory }) {
+export default function VoiceCallButton({ sessionId, patientPhone, patientName }) {
   const [status, setStatus] = useState(STATES.idle);
   const [toast, setToast] = useState(null);
 
   async function handleClick() {
-    if (status !== STATES.idle) return;
+    if (status !== STATES.idle || !patientPhone) return;
     setStatus(STATES.calling);
     try {
-      await initiateVoiceCall({ sessionId, phone: patientPhone, patientName, conversationHistory });
+      await initiateVoiceCall({ sessionId, phone: patientPhone, patientName });
       setStatus(STATES.done);
       showToast('📞 Our AI will call you shortly!', '#10B981');
-    } catch {
+    } catch (err) {
       setStatus(STATES.idle);
-      showToast('Could not initiate call. Please try again.', '#EF4444');
+      showToast(err?.message || 'Could not initiate call. Please try again.', '#EF4444');
     }
   }
 
@@ -25,6 +25,7 @@ export default function VoiceCallButton({ sessionId, patientPhone, patientName, 
     setTimeout(() => setToast(null), 4000);
   }
 
+  const noPhone = !patientPhone;
   const btnStyle = {
     display: 'flex',
     alignItems: 'center',
@@ -37,7 +38,8 @@ export default function VoiceCallButton({ sessionId, patientPhone, patientName, 
       : 'rgba(59,130,246,0.18)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
-    cursor: status === STATES.idle ? 'pointer' : 'default',
+    cursor: noPhone || status !== STATES.idle ? 'not-allowed' : 'pointer',
+    opacity: noPhone ? 0.4 : 1,
     color: '#F8FAFC',
     fontSize: 13,
     fontWeight: 600,
@@ -51,7 +53,7 @@ export default function VoiceCallButton({ sessionId, patientPhone, patientName, 
         className={status === STATES.idle ? 'voice-btn-pulse' : ''}
         style={btnStyle}
         onClick={handleClick}
-        disabled={status !== STATES.idle}
+        disabled={status !== STATES.idle || noPhone}
       >
         {status === STATES.calling ? (
           <>

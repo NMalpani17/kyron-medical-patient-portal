@@ -40,6 +40,8 @@ export default function ChatWindow({
   onSlotBook,
   doctors,
   availableSlots,
+  patientPhone,
+  patientName,
 }) {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef(null);
@@ -74,12 +76,6 @@ export default function ChatWindow({
     if (isLoading || appointmentBooked) return;
     onSlotBook(slotData);
   }
-
-  // Extract phone + name from messages for voice button
-  const conversationHistory = messages.map(({ role, content }) => ({
-    role,
-    content,
-  }));
 
   return (
     <div
@@ -131,9 +127,8 @@ export default function ChatWindow({
 
         <VoiceCallButton
           sessionId={sessionId}
-          patientPhone={null}
-          patientName={null}
-          conversationHistory={conversationHistory}
+          patientPhone={patientPhone}
+          patientName={patientName}
         />
       </div>
 

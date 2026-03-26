@@ -7,13 +7,16 @@ const AppointmentService = require('../services/AppointmentService');
 const ChatService = require('../services/ChatService');
 const AppointmentController = require('../controllers/AppointmentController');
 const ChatController = require('../controllers/ChatController');
-const voiceController = require('../controllers/VoiceController');
+const VoiceService = require('../services/VoiceService');
+const VoiceController = require('../controllers/VoiceController');
 
 // Dependency injection chain
 const appointmentService = new AppointmentService(doctorRepository);
 const chatService = new ChatService(appointmentService, doctorMatchService, doctorRepository);
 const appointmentController = new AppointmentController(appointmentService, doctorRepository, chatService);
 const chatController = new ChatController(chatService);
+const voiceService = new VoiceService();
+const voiceController = new VoiceController(chatService, voiceService);
 
 // Health
 router.get('/health', (req, res) => res.json({ status: 'ok' }));
@@ -56,7 +59,7 @@ router.get('/appointment/patient-context/:sessionId', (req, res, next) => {
 router.get('/appointment/slots-for-session/:sessionId', (req, res, next) => {
   try {
     const { doctor, patientInfo } = chatService.getConversationContext(req.params.sessionId);
-    if (!doctor) return res.json({ doctor: null, patientInfo: null, slots: [] });
+    if (!doctor) return res.json({ doctor: null, patientInfo, slots: [] });
     const slots = appointmentService.getSlots(doctor.id);
     res.json({ doctor, patientInfo, slots });
   } catch (err) {
@@ -67,8 +70,8 @@ router.get('/appointment/slots-for-session/:sessionId', (req, res, next) => {
 // Chat
 router.post('/chat', chatController.chat);
 
-// Voice (placeholder)
-router.post('/voice/initiate', (req, res) => voiceController.initiate(req, res));
-router.post('/voice/context', (req, res) => voiceController.context(req, res));
+// Voice
+router.post('/voice/initiate', voiceController.initiate);
+router.post('/voice/context', voiceController.context);
 
 module.exports = router;
